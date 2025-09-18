@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>結果表示テスト - テスト組み合わせ生成ツール</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h1 class="h4 mb-0">結果表示とカバレッジ機能テスト</h1>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-2 mb-4">
+                            <button type="button" class="btn btn-primary" onclick="testResultsDisplay()">
+                                <i class="bi bi-table me-1"></i>
+                                結果表示テスト
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="testCoverageDisplay()">
+                                <i class="bi bi-graph-up me-1"></i>
+                                カバレッジ表示テスト
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="clearResults()">
+                                <i class="bi bi-x-circle me-1"></i>
+                                クリア
+                            </button>
+                        </div>
+                        
+                        <!-- 結果が未生成の場合のメッセージ -->
+                        <div id="no-results-message" class="text-center text-muted py-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            上のボタンをクリックしてテストを実行してください
+                        </div>
+                        
+                        <!-- 結果表示エリア -->
+                        <div id="results-container" style="display: none;">
+                            <!-- カバレッジ情報パネル -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="card border-info">
+                                        <div class="card-header bg-info text-white">
+                                            <h6 class="card-title mb-0">
+                                                <i class="bi bi-graph-up me-2"></i>
+                                                カバレッジ情報
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row" id="coverage-stats">
+                                                <!-- 動的に生成される -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- テーブル制御パネル -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label for="results-per-page" class="form-label mb-0 text-nowrap">表示件数:</label>
+                                        <select id="results-per-page" class="form-select form-select-sm" style="width: auto;" onchange="updateResultsPerPage()">
+                                            <option value="10">10件</option>
+                                            <option value="25" selected>25件</option>
+                                            <option value="50">50件</option>
+                                            <option value="100">100件</option>
+                                            <option value="-1">全て</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label for="results-search" class="form-label mb-0 text-nowrap">検索:</label>
+                                        <input type="text" id="results-search" class="form-control form-control-sm" 
+                                               placeholder="テストケースを検索..." onkeyup="filterResults()">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- テーブル表示エリア -->
+                            <div class="table-responsive">
+                                <table id="results-table" class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr id="results-table-header">
+                                            <!-- 動的に生成される -->
+                                        </tr>
+                                    </thead>
+                                    <tbody id="results-table-body">
+                                        <!-- 動的に生成される -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- ページネーション -->
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="text-muted">
+                                    <span id="results-info"><!-- 結果情報が表示される --></span>
+                                </div>
+                                <nav aria-label="結果ページネーション">
+                                    <ul id="results-pagination" class="pagination pagination-sm mb-0">
+                                        <!-- 動的に生成される -->
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="js/main.js"></script>
+    
+    <script>
+        // テスト用の関数
+        function testResultsDisplay() {
+            if (!resultsTableManager) {
+                resultsTableManager = new ResultsTableManager();
+            }
+            
+            // サンプルデータを表示
+            resultsTableManager.loadSampleData();
+        }
+    </script>
+</body>
+</html>

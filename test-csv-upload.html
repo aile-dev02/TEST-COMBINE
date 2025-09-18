@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>CSV Upload Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: CSV Parsing</h2>
+        <button onclick="testCSVParsing()">Run CSV Parsing Test</button>
+        <div id="csv-parsing-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: File Validation</h2>
+        <button onclick="testFileValidation()">Run File Validation Test</button>
+        <div id="file-validation-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: CSV Line Parsing</h2>
+        <button onclick="testCSVLineParsing()">Run CSV Line Parsing Test</button>
+        <div id="csv-line-parsing-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Error Handling</h2>
+        <button onclick="testErrorHandling()">Run Error Handling Test</button>
+        <div id="error-handling-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 5: Sample CSV Download</h2>
+        <button onclick="testSampleCSVDownload()">Test Sample CSV Download</button>
+        <div id="sample-csv-result"></div>
+    </div>
+
+    <script src="js/main.js"></script>
+    
+    <script>
+        function testCSVParsing() {
+            const resultDiv = document.getElementById('csv-parsing-result');
+            resultDiv.innerHTML = '<p class="info">Testing CSV parsing...</p>';
+            
+            try {
+                if (!inputManager) {
+                    inputManager = new InputManager();
+                }
+                
+                const testCSV = `ブラウザ,OS,画面サイズ
+Chrome,Windows,デスクトップ
+Firefox,macOS,タブレット
+Safari,iOS,モバイル
+Edge,Android,デスクトップ
+Chrome,Linux,タブレット`;
+                
+                const result = inputManager.parseCSV(testCSV);
+                
+                if (result.success) {
+                    let output = '<p class="success">✅ CSV parsing successful!</p>';
+                    output += `<p>Factors found: ${result.factors.length}</p>`;
+                    output += '<pre>';
+                    result.factors.forEach((factor, index) => {
+                        output += `Factor ${index + 1}: ${factor.name}\n`;
+                        output += `  Levels (${factor.levels.length}): ${factor.levels.join(', ')}\n\n`;
+                    });
+                    output += '</pre>';
+                    resultDiv.innerHTML = output;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ CSV parsing failed: ${result.error}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        function testFileValidation() {
+            const resultDiv = document.getElementById('file-validation-result');
+            resultDiv.innerHTML = '<p class="info">Testing file validation...</p>';
+            
+            try {
+                if (!inputManager) {
+                    inputManager = new InputManager();
+                }
+                
+                // Test valid file
+                const validFile = {
+                    name: 'test.csv',
+                    type: 'text/csv',
+                    size: 1024
+                };
+                
+                const validResult = inputManager.validateCSVFile(validFile);
+                
+                // Test invalid file
+                const invalidFile = {
+                    name: 'test.txt',
+                    type: 'text/plain',
+                    size: 1024
+                };
+                
+                const invalidResult = inputManager.validateCSVFile(invalidFile);
+                
+                // Test oversized file
+                const oversizedFile = {
+                    name: 'large.csv',
+                    type: 'text/csv',
+                    size: 11 * 1024 * 1024 // 11MB
+                };
+                
+                const oversizedResult = inputManager.validateCSVFile(oversizedFile);
+                
+                let output = '<p class="success">File validation tests:</p>';
+                output += `<p>Valid CSV file: ${validResult ? '✅ Passed' : '❌ Failed'}</p>`;
+                output += `<p>Invalid file type: ${!invalidResult ? '✅ Correctly rejected' : '❌ Incorrectly accepted'}</p>`;
+                output += `<p>Oversized file: ${!oversizedResult ? '✅ Correctly rejected' : '❌ Incorrectly accepted'}</p>`;
+                
+                resultDiv.innerHTML = output;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        function testCSVLineParsing() {
+            const resultDiv = document.getElementById('csv-line-parsing-result');
+            resultDiv.innerHTML = '<p class="info">Testing CSV line parsing...</p>';
+            
+            try {
+                if (!inputManager) {
+                    inputManager = new InputManager();
+                }
+                
+                const testLines = [
+                    'simple,test,data',
+                    '"quoted,data","normal","with""quotes"',
+                    'mixed,"quoted,comma",normal',
+                    'empty,,fields',
+                    '"","single quote","normal"'
+                ];
+                
+                let output = '<p class="success">CSV line parsing tests:</p><pre>';
+                
+                testLines.forEach((line, index) => {
+                    const parsed = inputManager.parseCSVLine(line);
+                    output += `Line ${index + 1}: ${line}\n`;
+                    output += `Parsed: [${parsed.map(cell => `"${cell}"`).join(', ')}]\n\n`;
+                });
+                
+                output += '</pre>';
+                resultDiv.innerHTML = output;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        function testErrorHandling() {
+            const resultDiv = document.getElementById('error-handling-result');
+            resultDiv.innerHTML = '<p class="info">Testing error handling...</p>';
+            
+            try {
+                if (!inputManager) {
+                    inputManager = new InputManager();
+                }
+                
+                const testCases = [
+                    { name: 'Empty CSV', csv: '' },
+                    { name: 'Header only', csv: 'Factor1,Factor2' },
+                    { name: 'Duplicate headers', csv: 'Factor1,Factor1\nA,B\nC,D' },
+                    { name: 'No valid factors', csv: 'Factor1,Factor2\nA,\n,B' },
+                    { name: 'Single level factors', csv: 'Factor1,Factor2\nA,X\nA,X' }
+                ];
+                
+                let output = '<p class="success">Error handling tests:</p>';
+                
+                testCases.forEach(testCase => {
+                    const result = inputManager.parseCSV(testCase.csv);
+                    const status = result.success ? '❌ Incorrectly passed' : '✅ Correctly rejected';
+                    output += `<p>${testCase.name}: ${status}</p>`;
+                    if (!result.success) {
+                        output += `<p style="margin-left: 20px; font-size: 0.9em; color: #666;">Error: ${result.error}</p>`;
+                    }
+                });
+                
+                resultDiv.innerHTML = output;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        function testSampleCSVDownload() {
+            const resultDiv = document.getElementById('sample-csv-result');
+            resultDiv.innerHTML = '<p class="info">Testing sample CSV download...</p>';
+            
+            try {
+                if (typeof downloadSampleCSV === 'function') {
+                    downloadSampleCSV();
+                    resultDiv.innerHTML = '<p class="success">✅ Sample CSV download function executed successfully!</p>';
+                } else {
+                    resultDiv.innerHTML = '<p class="error">❌ downloadSampleCSV function not found</p>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

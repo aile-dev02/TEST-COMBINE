@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Export Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>CSV Export Functionality Test</h1>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>CSV Export Test</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 mb-3">
+                    <button type="button" class="btn btn-primary" onclick="setupTestData()">
+                        <i class="bi bi-database me-1"></i>
+                        テストデータ設定
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="testCSVExport()">
+                        <i class="bi bi-download me-1"></i>
+                        CSV出力テスト
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="testAllCombinationsExport()">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>
+                        全組み合わせCSVテスト
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="testLargeDataExport()">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        大容量データテスト
+                    </button>
+                </div>
+                
+                <div id="test-output" class="border rounded p-3 bg-light" style="min-height: 200px; font-family: monospace; white-space: pre-wrap;">
+                    テスト結果がここに表示されます...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        function log(message) {
+            const output = document.getElementById('test-output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.textContent += `[${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function setupTestData() {
+            log('テストデータを設定中...');
+            
+            try {
+                // InputManager を初期化
+                if (!window.inputManager) {
+                    window.inputManager = new InputManager();
+                }
+                
+                // テスト用因子を作成
+                const testFactors = [
+                    new Factor('ブラウザ', ['Chrome', 'Firefox', 'Safari']),
+                    new Factor('OS', ['Windows', 'Mac', 'Linux']),
+                    new Factor('画面サイズ', ['デスクトップ', 'タブレット', 'モバイル'])
+                ];
+                
+                // InputManager に因子を設定
+                window.inputManager.factors = testFactors;
+                
+                // ResultsTableManager を初期化
+                if (!window.resultsTableManager) {
+                    window.resultsTableManager = new ResultsTableManager();
+                }
+                
+                // テスト用テストケースを作成
+                const testCases = [
+                    new TestCase(new Map([
+                        [testFactors[0].id, 'Chrome'],
+                        [testFactors[1].id, 'Windows'],
+                        [testFactors[2].id, 'デスクトップ']
+                    ])),
+                    new TestCase(new Map([
+                        [testFactors[0].id, 'Firefox'],
+                        [testFactors[1].id, 'Mac'],
+                        [testFactors[2].id, 'タブレット']
+                    ])),
+                    new TestCase(new Map([
+                        [testFactors[0].id, 'Safari'],
+                        [testFactors[1].id, 'Linux'],
+                        [testFactors[2].id, 'モバイル']
+                    ]))
+                ];
+                
+                // ResultsTableManager にデータを設定
+                window.resultsTableManager.testCases = testCases;
+                window.resultsTableManager.factors = testFactors;
+                
+                // グローバル状態を設定
+                if (!window.TestCombinationGenerator) {
+                    window.TestCombinationGenerator = {};
+                }
+                window.TestCombinationGenerator.currentAlgorithm = 'pairwise';
+                
+                log('✓ テストデータの設定が完了しました');
+                log(`  - 因子数: ${testFactors.length}`);
+                log(`  - テストケース数: ${testCases.length}`);
+                log(`  - アルゴリズムタイプ: pairwise`);
+                
+            } catch (error) {
+                log(`✗ テストデータ設定エラー: ${error.message}`);
+                console.error(error);
+            }
+        }
+        
+        function testCSVExport() {
+            log('CSV出力機能をテスト中...');
+            
+            try {
+                if (!window.resultsTableManager || !window.resultsTableManager.testCases.length) {
+                    log('✗ テストデータが設定されていません。まず「テストデータ設定」を実行してください。');
+                    return;
+                }
+                
+                // CSV データを生成
+                const csvData = window.resultsTableManager.generateCSVData('pairwise');
+                log('✓ CSVデータの生成が成功しました');
+                log(`  データサイズ: ${csvData.length} 文字`);
+                
+                // ファイル名を生成
+                const filename = window.resultsTableManager.generateCSVFilename('pairwise');
+                log(`✓ ファイル名の生成が成功しました: ${filename}`);
+                
+                // CSV内容をプレビュー
+                const lines = csvData.split('\n');
+                log('CSV内容プレビュー:');
+                lines.slice(0, Math.min(5, lines.length)).forEach((line, index) => {
+                    log(`  ${index + 1}: ${line}`);
+                });
+                if (lines.length > 5) {
+                    log(`  ... (全${lines.length}行)`);
+                }
+                
+                // 実際のダウンロードをテスト
+                exportResultsToCSV('pairwise');
+                log('✓ CSV出力機能のテストが完了しました');
+                
+            } catch (error) {
+                log(`✗ CSV出力テストエラー: ${error.message}`);
+                console.error(error);
+            }
+        }
+        
+        function testAllCombinationsExport() {
+            log('全組み合わせCSV出力機能をテスト中...');
+            
+            try {
+                if (!window.inputManager || !window.inputManager.factors.length) {
+                    log('✗ 因子データが設定されていません。まず「テストデータ設定」を実行してください。');
+                    return;
+                }
+                
+                // 全組み合わせ数を計算
+                const allCombinationsGenerator = new AllCombinationsGenerator();
+                const totalCombinations = allCombinationsGenerator.calculateTotalCombinations(window.inputManager.factors);
+                log(`✓ 全組み合わせ数の計算が成功しました: ${totalCombinations.toLocaleString()} 件`);
+                
+                // 全組み合わせを生成
+                const testCases = allCombinationsGenerator.generate(window.inputManager.factors, true);
+                log(`✓ 全組み合わせの生成が成功しました: ${testCases.length} 件`);
+                
+                // CSV データを生成
+                const csvData = generateAllCombinationsCSV(testCases, window.inputManager.factors);
+                log('✓ 全組み合わせCSVデータの生成が成功しました');
+                log(`  データサイズ: ${csvData.length} 文字`);
+                
+                // CSV内容をプレビュー
+                const lines = csvData.split('\n');
+                log('CSV内容プレビュー:');
+                lines.slice(0, Math.min(5, lines.length)).forEach((line, index) => {
+                    log(`  ${index + 1}: ${line}`);
+                });
+                if (lines.length > 5) {
+                    log(`  ... (全${lines.length}行)`);
+                }
+                
+                // 実際のダウンロードをテスト
+                exportAllCombinationsToCSV();
+                log('✓ 全組み合わせCSV出力機能のテストが完了しました');
+                
+            } catch (error) {
+                log(`✗ 全組み合わせCSV出力テストエラー: ${error.message}`);
+                console.error(error);
+            }
+        }
+        
+        function testLargeDataExport() {
+            log('大容量データCSV出力機能をテスト中...');
+            
+            try {
+                // 大容量テスト用因子を作成（5因子×5水準 = 3,125組み合わせ）
+                const largeTestFactors = [
+                    new Factor('ブラウザ', ['Chrome', 'Firefox', 'Safari', 'Edge', 'Opera']),
+                    new Factor('OS', ['Windows', 'Mac', 'Linux', 'iOS', 'Android']),
+                    new Factor('画面サイズ', ['デスクトップ', 'タブレット', 'モバイル', 'TV', 'ウォッチ']),
+                    new Factor('ネットワーク', ['WiFi', '4G', '5G', 'Ethernet', 'Offline']),
+                    new Factor('言語', ['日本語', '英語', '中国語', 'スペイン語', 'フランス語'])
+                ];
+                
+                // InputManager に大容量因子を設定
+                if (!window.inputManager) {
+                    window.inputManager = new InputManager();
+                }
+                window.inputManager.factors = largeTestFactors;
+                
+                // 全組み合わせ数を計算
+                const allCombinationsGenerator = new AllCombinationsGenerator();
+                const totalCombinations = allCombinationsGenerator.calculateTotalCombinations(largeTestFactors);
+                log(`✓ 大容量テストデータの設定が完了しました`);
+                log(`  - 因子数: ${largeTestFactors.length}`);
+                log(`  - 全組み合わせ数: ${totalCombinations.toLocaleString()}`);
+                
+                // メモリ使用量推定
+                const memoryEstimate = allCombinationsGenerator.estimateMemoryUsage(largeTestFactors);
+                log(`  - 推定メモリ使用量: ${memoryEstimate.formatted}`);
+                
+                // 大容量データ出力をテスト
+                log('大容量データCSV出力を開始します...');
+                exportAllCombinationsToCSV();
+                log('✓ 大容量データCSV出力機能のテストが開始されました');
+                
+            } catch (error) {
+                log(`✗ 大容量データテストエラー: ${error.message}`);
+                console.error(error);
+            }
+        }
+        
+        // ページ読み込み時の初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('CSV Export Test ページが読み込まれました');
+            log('「テストデータ設定」ボタンをクリックしてテストを開始してください');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テスト組み合わせ生成ツール</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+
+<body>
+    <!-- Skip Links for Accessibility -->
+    <a href="#main-content" class="skip-link">メインコンテンツにスキップ</a>
+    <a href="#algorithm-selection" class="skip-link">アルゴリズム選択にスキップ</a>
+    <a href="#results-section" class="skip-link">結果にスキップ</a>
+
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-grid-3x3-gap me-2"></i>
+                テスト組み合わせ生成ツール
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">使い方</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container-fluid py-4" id="main-content" role="main">
+        <div class="container">
+            <!-- Welcome Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h1 class="card-title h3 mb-3">テスト組み合わせ生成ツール</h1>
+                            <p class="card-text text-muted mb-3">
+                                因子と水準からペアワイズテストや3因子間網羅のテスト組み合わせを効率的に生成します
+                            </p>
+                            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                <button type="button" class="btn btn-outline-primary btn-sm"
+                                    onclick="showSampleDataModal()">
+                                    <i class="bi bi-collection me-1"></i>
+                                    サンプルデータで試す
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm"
+                                    onclick="showQuickStartGuide()">
+                                    <i class="bi bi-question-circle me-1"></i>
+                                    クイックスタート
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    onclick="showUserGuide()">
+                                    <i class="bi bi-book me-1"></i>
+                                    使い方ガイド
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="card-title h5 mb-0">因子・水準の入力</h2>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="addFactor()">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                因子を追加
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <!-- 因子入力フォーム -->
+                            <div id="factors-container">
+                                <!-- 動的に因子フォームが追加される -->
+                            </div>
+
+                            <!-- 初期状態のメッセージ -->
+                            <div id="no-factors-message" class="text-center text-muted py-4">
+                                <i class="bi bi-info-circle me-2"></i>
+                                「因子を追加」ボタンをクリックして因子と水準を入力してください
+                            </div>
+
+                            <!-- バリデーションエラー表示エリア -->
+                            <div id="validation-errors" class="mt-3" style="display: none;">
+                                <!-- バリデーションエラーが表示される -->
+                            </div>
+
+                            <!-- 因子サマリー -->
+                            <div id="factors-summary" class="mt-3" style="display: none;">
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading mb-2">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        入力サマリー
+                                    </h6>
+                                    <div id="summary-content">
+                                        <!-- サマリー内容が表示される -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CSV Upload Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title h5 mb-0">CSVファイルから読み込み</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="csv-file-input" class="form-label">
+                                            <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+                                            CSVファイルを選択
+                                        </label>
+                                        <input type="file" class="form-control" id="csv-file-input"
+                                            accept=".csv,text/csv" onchange="handleCSVFileUpload(event)">
+                                        <div class="form-text">
+                                            1行目に因子名、2行目以降に水準データを含むCSVファイルを選択してください
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            onclick="downloadSampleCSV()">
+                                            <i class="bi bi-download me-1"></i>
+                                            サンプルCSVダウンロード
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" onclick="clearAllFactors()"
+                                            id="clear-factors-btn" style="display: none;">
+                                            <i class="bi bi-trash me-1"></i>
+                                            全てクリア
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CSV処理状況表示 -->
+                            <div id="csv-processing-status" class="mt-3" style="display: none;">
+                                <!-- CSV処理状況が表示される -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Selection Section -->
+            <div class="row mb-4" id="algorithm-selection">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title h5 mb-0">アルゴリズム選択</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="bi bi-cpu me-1"></i>
+                                            テスト組み合わせ生成アルゴリズム
+                                        </label>
+                                        <div class="row">
+                                            <div class="col-md-4 mb-2">
+                                                <div class="card algorithm-card" data-algorithm="pairwise">
+                                                    <div class="card-body text-center p-3">
+                                                        <div class="algorithm-icon mb-2">
+                                                            <i class="bi bi-grid-1x2 text-primary"
+                                                                style="font-size: 2rem;"></i>
+                                                        </div>
+                                                        <h6 class="card-title">ペアワイズテスト</h6>
+                                                        <p class="card-text small text-muted">2因子間網羅</p>
+                                                        <button type="button"
+                                                            class="btn btn-outline-primary btn-sm w-100"
+                                                            onclick="selectAlgorithm('pairwise')" id="btn-pairwise">
+                                                            選択
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-2">
+                                                <div class="card algorithm-card" data-algorithm="threeway">
+                                                    <div class="card-body text-center p-3">
+                                                        <div class="algorithm-icon mb-2">
+                                                            <i class="bi bi-grid-3x3 text-info"
+                                                                style="font-size: 2rem;"></i>
+                                                        </div>
+                                                        <h6 class="card-title">3因子間網羅</h6>
+                                                        <p class="card-text small text-muted">3-way coverage</p>
+                                                        <button type="button" class="btn btn-outline-info btn-sm w-100"
+                                                            onclick="selectAlgorithm('threeway')" id="btn-threeway">
+                                                            選択
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-2">
+                                                <div class="card algorithm-card" data-algorithm="allcombinations">
+                                                    <div class="card-body text-center p-3">
+                                                        <div class="algorithm-icon mb-2">
+                                                            <i class="bi bi-grid text-warning"
+                                                                style="font-size: 2rem;"></i>
+                                                        </div>
+                                                        <h6 class="card-title">全組み合わせ</h6>
+                                                        <p class="card-text small text-muted">全網羅</p>
+                                                        <button type="button"
+                                                            class="btn btn-outline-warning btn-sm w-100"
+                                                            onclick="selectAlgorithm('allcombinations')"
+                                                            id="btn-allcombinations">
+                                                            選択
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 選択されたアルゴリズムの詳細 -->
+                                    <div id="algorithm-details" class="alert alert-info" style="display: none;">
+                                        <h6 class="alert-heading mb-2">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            <span id="algorithm-name">アルゴリズム</span>の詳細
+                                        </h6>
+                                        <p id="algorithm-description" class="mb-2">アルゴリズムの説明がここに表示されます。</p>
+                                        <div id="algorithm-requirements" class="small text-muted">
+                                            必要な因子数: <span id="min-factors">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-success btn-lg"
+                                            onclick="generateTestCombinations()" id="generate-btn" disabled
+                                            aria-describedby="generate-help">
+                                            <i class="bi bi-play-circle me-2"></i>
+                                            テスト組み合わせ生成
+                                        </button>
+                                        <div id="generate-help" class="form-text">
+                                            因子を追加してアルゴリズムを選択してください
+                                        </div>
+
+                                        <!-- 生成予測情報 -->
+                                        <div id="generation-estimate" class="card border-secondary"
+                                            style="display: none;">
+                                            <div class="card-body p-2">
+                                                <h6 class="card-title h6 mb-1">
+                                                    <i class="bi bi-calculator me-1"></i>
+                                                    生成予測
+                                                </h6>
+                                                <div class="small">
+                                                    <div>予想テストケース数: <span id="estimated-cases" class="fw-bold">-</span>
+                                                    </div>
+                                                    <div>削減率: <span id="estimated-reduction" class="fw-bold">-</span>
+                                                    </div>
+                                                    <div class="text-muted">実行時間: <span id="estimated-time">-</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="row mb-4" id="results-section">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="card-title h5 mb-0">生成結果</h2>
+                            <div id="results-controls" class="d-flex gap-2" style="display: none !important;">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="exportResultsToCSV()">
+                                        <i class="bi bi-download me-1"></i>
+                                        CSV出力
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm"
+                                        onclick="exportAllCombinationsToCSV()" title="全ての因子・水準の組み合わせをCSVで出力">
+                                        <i class="bi bi-grid-3x3-gap me-1"></i>
+                                        全組み合わせCSV
+                                    </button>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearResults()">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    結果クリア
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- 結果が未生成の場合のメッセージ -->
+                            <div id="no-results-message" class="text-center text-muted py-4">
+                                <i class="bi bi-info-circle me-2"></i>
+                                アルゴリズムを実行してテスト組み合わせを生成してください
+                            </div>
+
+                            <!-- 結果表示エリア -->
+                            <div id="results-container" style="display: none;">
+                                <!-- カバレッジ情報パネル -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <div class="card border-info">
+                                            <div class="card-header bg-info text-white">
+                                                <h6 class="card-title mb-0">
+                                                    <i class="bi bi-graph-up me-2"></i>
+                                                    カバレッジ情報
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row" id="coverage-stats">
+                                                    <!-- 動的に生成される -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- テーブル制御パネル -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <label for="results-per-page"
+                                                class="form-label mb-0 text-nowrap">表示件数:</label>
+                                            <select id="results-per-page" class="form-select form-select-sm"
+                                                style="width: auto;" onchange="updateResultsPerPage()">
+                                                <option value="10">10件</option>
+                                                <option value="25" selected>25件</option>
+                                                <option value="50">50件</option>
+                                                <option value="100">100件</option>
+                                                <option value="-1">全て</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <label for="results-search" class="form-label mb-0 text-nowrap">検索:</label>
+                                            <input type="text" id="results-search" class="form-control form-control-sm"
+                                                placeholder="テストケースを検索..." onkeyup="filterResults()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- テーブル表示エリア -->
+                                <div class="table-responsive">
+                                    <table id="results-table" class="table table-striped table-hover">
+                                        <thead class="table-dark">
+                                            <tr id="results-table-header">
+                                                <!-- 動的に生成される -->
+                                            </tr>
+                                        </thead>
+                                        <tbody id="results-table-body">
+                                            <!-- 動的に生成される -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- ページネーション -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="text-muted">
+                                        <span id="results-info"><!-- 結果情報が表示される --></span>
+                                    </div>
+                                    <nav aria-label="結果ページネーション">
+                                        <ul id="results-pagination" class="pagination pagination-sm mb-0">
+                                            <!-- 動的に生成される -->
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Development Test Section (only visible with ?test=true) -->
+            <div class="row mb-4" id="test-section" style="display: none;">
+                <div class="col-12">
+                    <div class="card border-info">
+                        <div class="card-header bg-info text-white">
+                            <h2 class="card-title h5 mb-0">
+                                <i class="bi bi-bug me-2"></i>
+                                開発用テスト
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2 mb-3 flex-wrap">
+                                <button type="button" class="btn btn-outline-primary" onclick="runDataModelTests()">
+                                    <i class="bi bi-play-circle me-1"></i>
+                                    データモデルテスト実行
+                                </button>
+                                <button type="button" class="btn btn-outline-info"
+                                    onclick="testFactorInputFormIntegration()">
+                                    <i class="bi bi-ui-checks me-1"></i>
+                                    因子入力フォームテスト
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="testFactorInputFormUI()">
+                                    <i class="bi bi-display me-1"></i>
+                                    UIテスト
+                                </button>
+                                <button type="button" class="btn btn-outline-warning"
+                                    onclick="testCSVUploadFunctionality()">
+                                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+                                    CSVアップロードテスト
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="clearTestResults()">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    結果クリア
+                                </button>
+                                <button type="button" class="btn btn-outline-info" onclick="testCoverageDisplay()">
+                                    <i class="bi bi-graph-up me-1"></i>
+                                    カバレッジ表示テスト
+                                </button>
+                            </div>
+                            <div id="test-results" class="border rounded p-3 bg-light"
+                                style="min-height: 100px; font-family: monospace; white-space: pre-wrap; overflow-y: auto; max-height: 400px;">
+                                テスト結果がここに表示されます...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light border-top mt-5">
+        <div class="container py-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="h6">テスト組み合わせ生成ツール</h5>
+                    <p class="text-muted small mb-0">
+                        効率的なテスト設計をサポートするWebアプリケーション
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted small mb-0">
+                        © 2025 Test Combination Generator
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Custom JavaScript -->
+    <script src="js/main.js"></script>
+    <script src="js/sample-data.js"></script>
+    <script src="test-algorithms.js"></script>
+    <script src="js/tests-clean.js"></script>
+</body>
+
+</html>

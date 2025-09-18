@@ -1,0 +1,9 @@
+ブラウザ,OS,画面サイズ,ネットワーク
+Chrome,Windows,デスクトップ,高速
+Firefox,macOS,タブレット,中速
+Safari,Linux,スマートフォン,低速
+Edge,Windows,デスクトップ,高速
+Chrome,macOS,タブレット,中速
+Firefox,Linux,スマートフォン,低速
+Safari,Windows,デスクトップ,高速
+Edge,macOS,タブレット,中速

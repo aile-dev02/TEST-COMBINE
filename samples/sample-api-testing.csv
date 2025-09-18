@@ -1,0 +1,7 @@
+HTTPメソッド,認証方式,データ形式,レスポンス形式
+GET,Bearer Token,JSON,JSON
+POST,API Key,XML,XML
+PUT,OAuth2,Form Data,JSON
+DELETE,Basic Auth,JSON,XML
+PATCH,Bearer Token,XML,JSON
+GET,API Key,Form Data,XML

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>因子入力フォームテスト</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>因子入力フォーム機能テスト</h1>
+        
+        <!-- Test Controls -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>テスト実行</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 mb-3">
+                    <button type="button" class="btn btn-primary" onclick="testBasicFunctionality()">
+                        基本機能テスト
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="testValidation()">
+                        バリデーションテスト
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="addSampleData()">
+                        サンプルデータ追加
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="clearAll()">
+                        全クリア
+                    </button>
+                </div>
+                <div id="test-output" class="border rounded p-3 bg-light" style="min-height: 200px; font-family: monospace; white-space: pre-wrap; overflow-y: auto;">
+テスト結果がここに表示されます...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Factor Input Section -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>因子・水準の入力</h5>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addFactor()">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    因子を追加
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="factors-container">
+                    <!-- 動的に因子フォームが追加される -->
+                </div>
+                
+                <div id="no-factors-message" class="text-center text-muted py-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    「因子を追加」ボタンをクリックして因子と水準を入力してください
+                </div>
+                
+                <div id="validation-errors" class="mt-3" style="display: none;">
+                    <!-- バリデーションエラーが表示される -->
+                </div>
+                
+                <div id="factors-summary" class="mt-3" style="display: none;">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading mb-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            入力サマリー
+                        </h6>
+                        <div id="summary-content">
+                            <!-- サマリー内容が表示される -->
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-outline-danger mt-3" onclick="clearAllFactors()" 
+                        id="clear-factors-btn" style="display: none;">
+                    <i class="bi bi-trash me-1"></i>
+                    全てクリア
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // テスト用の関数
+        function log(message) {
+            const output = document.getElementById('test-output');
+            output.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function testBasicFunctionality() {
+            log('=== 基本機能テスト開始 ===');
+            
+            try {
+                // InputManager の初期化確認
+                if (typeof inputManager !== 'undefined') {
+                    log('✅ InputManager が初期化されています');
+                } else {
+                    log('❌ InputManager が初期化されていません');
+                    return;
+                }
+                
+                // 因子追加テスト
+                addFactor();
+                log('✅ 因子追加機能テスト完了');
+                
+                // 因子データ確認
+                const factors = inputManager.getFactorsData();
+                log(`✅ 現在の因子数: ${factors.length}`);
+                
+                log('=== 基本機能テスト完了 ===');
+                
+            } catch (error) {
+                log('❌ エラー: ' + error.message);
+            }
+        }
+        
+        function testValidation() {
+            log('=== バリデーションテスト開始 ===');
+            
+            try {
+                // 空の状態でバリデーション
+                let validation = inputManager.validateInput();
+                log(`バリデーション結果（空の状態）: ${validation.isValid ? '成功' : '失敗'}`);
+                
+                // 因子を追加してバリデーション
+                const factorId = inputManager.addFactor('テスト因子', ['値1', '値2']);
+                validation = inputManager.validateInput();
+                log(`バリデーション結果（因子追加後）: ${validation.isValid ? '成功' : '失敗'}`);
+                
+                // 重複因子名テスト
+                inputManager.addFactor('テスト因子', ['値3', '値4']);
+                validation = inputManager.validateInput();
+                log(`バリデーション結果（重複因子名）: ${validation.isValid ? '失敗（重複が検出されなかった）' : '成功（重複が検出された）'}`);
+                
+                log('=== バリデーションテスト完了 ===');
+                
+            } catch (error) {
+                log('❌ エラー: ' + error.message);
+            }
+        }
+        
+        function addSampleData() {
+            log('=== サンプルデータ追加 ===');
+            
+            try {
+                inputManager.clearAll();
+                
+                inputManager.addFactor('ブラウザ', ['Chrome', 'Firefox', 'Safari', 'Edge']);
+                inputManager.addFactor('OS', ['Windows', 'macOS', 'Linux']);
+                inputManager.addFactor('画面サイズ', ['デスクトップ', 'タブレット', 'モバイル']);
+                
+                log('✅ サンプルデータを追加しました');
+                
+                const validation = inputManager.validateInput();
+                log(`バリデーション結果: ${validation.isValid ? '成功' : '失敗'}`);
+                
+            } catch (error) {
+                log('❌ エラー: ' + error.message);
+            }
+        }
+        
+        function clearAll() {
+            log('=== 全クリア実行 ===');
+            
+            try {
+                inputManager.clearAll();
+                log('✅ 全てのデータをクリアしました');
+                
+            } catch (error) {
+                log('❌ エラー: ' + error.message);
+            }
+        }
+        
+        // ページ読み込み完了時の初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('ページが読み込まれました');
+            log('因子入力フォーム機能のテストを開始できます');
+        });
+    </script>
+</body>
+</html>

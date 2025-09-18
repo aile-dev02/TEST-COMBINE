@@ -80,6 +80,9 @@ npx http-server
 
 # ブラウザでアクセス
 http://localhost:8000
+
+# supabaseのURL
+https://supabase.com/dashboard/project/fjukwlzmqughohpdzvht
 ```
 
 ### 3. 基本的な使用手順

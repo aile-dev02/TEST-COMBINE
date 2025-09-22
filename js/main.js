@@ -5522,7 +5522,7 @@ class InputManager {
         if (factor) {
             // カンマ区切りで分割し、空白をトリム
             const levels = levelsString
-                .split(',')
+                .split(/[,、]/)
                 .map(level => level.trim())
                 .filter(level => level.length > 0);
             
